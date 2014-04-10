@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1397114309 source:f:\git\2048_ai\2048-impl\main.cpp
+	<iostream>
+	"Logic.h"
+
+1397115591 f:\git\2048_ai\2048-impl\logic.h
+	<iostream>
+

@@ -1,9 +1,10 @@
 #include <iostream>
-
+#include "Logic.h"
 using namespace std;
 
 int main()
 {
-    cout << "Hello world!" << endl;
+    auto logic = new Logic(32);
+    logic->gameRun();
     return 0;
 }
