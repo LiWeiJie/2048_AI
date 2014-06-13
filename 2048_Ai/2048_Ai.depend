@@ -1,0 +1,24 @@
+# depslib dependency file v1.0
+1402635010 source:/home/licatweijie/Repo/2048_Ai/Ai.cpp
+	<cstdio>
+	"Ai.h"
+
+1402632890 /home/licatweijie/Repo/2048_Ai/Ai.h
+	<cstdlib>
+	<cstring>
+	<map>
+	<cmath>
+	<ctime>
+	"import.h"
+	<ctype.h>
+
+1402634821 source:/home/licatweijie/Repo/2048_Ai/main.cpp
+	<iostream>
+	"Ai.h"
+	<map>
+
+1401192488 /home/licatweijie/Repo/2048_Ai/import.h
+	<time.h>
+	<windows.h>
+	<sys/time.h>
+
