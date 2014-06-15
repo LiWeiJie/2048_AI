@@ -9,9 +9,16 @@
 #include "import.h"
 #include <ctype.h>
 
+#ifdef _WIN32
+typedef __UINT64_TYPE__  board_t;
+typedef __UINT16_TYPE__  row_t;
+typedef __UINT8_TYPE__   move_t;
+#else
 typedef __uint64_t  board_t;
 typedef __uint16_t  row_t;
 typedef __uint8_t   move_t;
+#endif // _WIN32
+
 typedef move_t (*get_move_func_t)(board_t);
 
 #define ROW_MASK 0xFFFFULL

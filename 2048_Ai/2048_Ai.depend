@@ -22,3 +22,28 @@
 	<windows.h>
 	<sys/time.h>
 
+1402810313 source:d:\repo\2048_ai_t\2048_ai\ai.cpp
+	<cstdio>
+	"Ai.h"
+
+1402648689 d:\repo\2048_ai_t\2048_ai\ai.h
+	<cstdlib>
+	<cstring>
+	<map>
+	<cmath>
+	<ctime>
+	"import.h"
+	<ctype.h>
+
+1402810469 d:\repo\2048_ai_t\2048_ai\import.h
+	<time.h>
+	<windows.h>
+	<sys/time.h>
+	<unistd.h>
+	<sys/time.h>
+
+1402646797 source:d:\repo\2048_ai_t\2048_ai\main.cpp
+	<iostream>
+	"Ai.h"
+	<map>
+
