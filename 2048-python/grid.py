@@ -11,18 +11,19 @@ class Grid(object):
 	# def __init__(self):
 	# 	self.grid = []
 	size = 4
+	startCell = 2
+	score = 0
+	won = False
+	playerTurn = True
 
 	def __init__(self, state = []):
-		self.score = 0
-		self.won = False
-		self.playerTurn = True
 		if len(state) == 0:
 			self.state = []
 			for _x in range(4):
 				self.state.append([])
 				for _y in range(4):
 					self.state[-1].append(None)
-			startCell = 2
+			startCell = self.startCell
 			for x in range(startCell):
 				position = self.randomAvailableCell()
 				self.setCell(self.newCell(position))
@@ -42,12 +43,17 @@ class Grid(object):
 	def gprint(self):
 		for x in self.state:
 			li = []
+			columnStr = '['
 			for y in x:
 				if y==None:
-					li.append(None)
+					columnStr += ("     _")
+					# li.append(None)
 				else:
-					li.append(y.value)
-			print(li)
+					columnStr += ("%6d"%y.value)
+					# li.append(y.value)
+			# print(li)
+			columnStr += "]"
+			print(columnStr)
 			# print(x)
 
 	def clone(self):
@@ -206,6 +212,22 @@ class Grid(object):
 					return False
 		return True
 
+	def addRandomTile(self):
+		self.setCell( self.newCell( self.randomAvailableCell()))
+
+	def computerMove(self):
+		self.addRandomTile()
+		self.playerTurn = True
+
+	def mergeAvailable():
+		for action in range(4):
+			tryGrid = self.clone()
+			if tryGrid.move(action):
+				return True
+		return False
+
+	def moveAvailable(self):
+		return len(self.availableCells())!=0 or mergeAvailable()
 
 	# followed by some evaluation function
 
@@ -502,10 +524,23 @@ class TestGrid(object):
 		grid.setCell( Tile({"x":0, "y":0} , 16))
 		assert(grid.getCell({"x":0, "y":0}).value==16 )
 
+	def test_addRandomTile(self):
+		grid = Grid()
+		le = len(grid.availableCells())
+		grid.addRandomTile()
+		assert((le-len(grid.availableCells()))==1)
+
+	def test_mergeAvailable(self):
+		pass
+
+	def test_moveAvailable(self):
+		pass
+
+	def test_computerMove(self):
+		pass
 
 if __name__=="__main__":
 	grid = Grid()
 	grid.gprint()
 	ava = grid.availableCells()
-	print(ava[0]['x'])
-	print(grid.randomAvailableCell())
+	print(ava)
