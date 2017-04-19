@@ -3,6 +3,7 @@
 
 import random
 from copy import deepcopy
+import math
 
 from tile import Tile
 
@@ -231,36 +232,35 @@ class Grid(object):
 
 	# followed by some evaluation function
 
-	
-	# // measures how smooth the grid is (as if the values of the pieces
-	# // were interpreted as elevations). Sums of the pairwise difference
-	# // between neighboring tiles (in log space, so it represents the
-	# // number of merges that need to happen before they can merge). 
-	# // Note that the pieces can be distant
-	# Grid.prototype.smoothness = function() {
-	#   var smoothness = 0;
-	#   for (var x=0; x<4; x++) {
-	#     for (var y=0; y<4; y++) {
-	#       if ( this.cellOccupied( this.indexes[x][y] )) {
-	#         var value = Math.log(this.cellContent( this.indexes[x][y] ).value) / Math.log(2);
-	#         for (var direction=1; direction<=2; direction++) {
-	#           var vector = this.getVector(direction);
-	#           var targetCell = this.findFarthestPosition(this.indexes[x][y], vector).next;
+	def eval_print(self):
+		print("smoothness:%d"%self.smoothness())
+		# print("monotonicity:%d"%self.monotonicity())
 
-	#           if (this.cellOccupied(targetCell)) {
-	#             var target = this.cellContent(targetCell);
-	#             var targetValue = Math.log(target.value) / Math.log(2);
-	#             smoothness -= Math.abs(value - targetValue);
-	#           }
-	#         }
-	#       }
-	#     }
-	#   }
-	#   return smoothness;
-	# }
+	def smoothness(self):
+		smoothness = 0
+		for i in range(self.size):
+			for j in range(self.size):
+				position = {
+						"x":i,
+						"y":j
+					}
+				tile = self.getCell(position)
+				if (tile!=None):
+					mergeTime = math.log2(tile.value)
+					for d in [1,2]:
+						vector = self.getVector(d)
+						tiles = self.findFarthestPosition(position, vector)
+						# print(tiles)
+						farthest = tiles["farthest"]
+						nextTile = self.getCell(tiles["next"])
+						if nextTile!=None:
+							nextTime = math.log2(nextTile.value)
+							smoothness -= abs(mergeTime-nextTime)
 
-	def smoothness():
-		pass
+		return smoothness
+
+
+
 
 
 	# Grid.prototype.monotonicity = function() {
@@ -392,7 +392,8 @@ class Grid(object):
 	# }
 
 	def monotonicity(self):
-		pass
+		scores = [0 for _x in range(4)]
+		
 
 	def maxValue(self):
 		ma = None
@@ -401,6 +402,9 @@ class Grid(object):
 				if x!=None and (ma==None or x.value>ma.value):
 					ma = x
 		return ma
+
+	def maxValueTime(self):
+		return math.log2(self.maxValue())
 
 class TestGrid(object):
 

@@ -19,44 +19,141 @@ class AI(object):
 	def eval(self):
 		grid = self.grid
 		return 	grid.smoothness()*self.smoothWeight +\
-				grid.maxValue()*self.maxWeight+\
+				grid.maxValueTime()*self.maxWeight+\
 				len(grid.availableCells())*self.emptyWeight
 
 	def search(self, depth, alpha, beta, moveCount, cutoffs):
 		bestScore = 0
 		bestMove = -1
+
 		grid = self.grid
 		result = {}
 
 		if grid.playerTurn:
-			bestScore = alpha
-			for direction in range(4):
-				newGrid = grid.clone()
-				if newGrid.move(direction):
-					moveCount = moveCount+1
-					if newGrid.won:
-						return {
-							"move":direction,
-							"score":self.MAXSCORE
-							}
+			return self.alpha_phase()			
+		else:
+			# computer's turn 
+			badScore = beta
 
-					newAI = AI(newGrid)
+			
 
-					if depth==0:
-						result = {
-							"move":direction,
-							"score":newAI.eval()
+
+	def alpha_phase(self, depth, alpha, beta, moveCount, cutoffs):
+		bestScore = alpha
+		bestMove = -1
+		grid = self.grid
+		result = {}
+
+		for direction in range(4):
+			newGrid = grid.clone()
+			if newGrid.move(direction):
+				moveCount = moveCount+1
+				if newGrid.won:
+					return {
+						"move":direction,
+						"score":self.MAXSCORE
 						}
-					else:
-						result = newAI.search(depth-1, bestScore, beta, moveCount, cutoffs)
-						if (result["score"]==self.MAXSCORE):
+
+				newAI = AI(newGrid)
+
+				if depth==0:
+					result = {
+						"move":direction,
+						"score":newAI.eval(),
+						"moveCount":moveCount
+					}
+				else:
+					result = newAI.search(depth-1, bestScore, beta, moveCount, cutoffs)
+					# if (result["score"]==self.MAXSCORE):
+					moveCount = result["moveCount"]
+					cutoffs = result["cutoffs"]
+
+				if result["score"]>bestScore:
+					bestScore = result["score"]
+					bestMove = direction
+
+				if bestScore > beta:
+					cutoffs += 1
+					# break
+					return {
+						"move" : bestMove,
+						"score" : beta,
+						"moveCount" : moveCount,
+						"cutoffs" : cutoffs
+						}
+		return {
+			"move" : bestMove,
+			"score" : bestScore,
+			"moveCount" : moveCount,
+			"cutoffs" : cutoffs
+			}
+
+	def beta_phase(self, depth, alpha, beta, moveCount, cutoffs ):
+		return worse_beta(depth, alpha, beta, moveCount, cutoffs)
+		# return expect_beta(depth, alpha, beta, moveCount, cutoffs)
+		# return badone_beta(depth, alpha, beta, moveCount, cutoffs)
+
+	def worse_beta(self, depth, alpha, beta, moveCount, cutoffs  ):
+		badScore = beta
+		badMove = None
+		grid = self.grid
+
+		scores = [2, 4]
+		cells = self.grid.availableCells()
+		for val in scores:
+			for cell in cells:	
+				tile = Tile(cell, val)
+				moveCount += 1
+				# newGrid = this.grid.clone()
+				# newGrid.setCell(tile)
+				# newGrid.playerTurn = True
+				# newAI = AI(self.grid)
+				# newAI.search(depth, alpha, badScore, moveCount, cutoffs)
+				self.grid.setCell(tile)
+				self.grid.playerTurn = True
+				result  = self.search(depth, alpha, badScore, moveCount, cutoffs)
+				self.grid.removeCell(cell)
+				self.grid.playerTurn = False
+				moveCount = result["moveCount"]
+				cutoffs = result["cutoffs"]
+
+				if result["score"] < badScore:
+					badScore = result["score"]
+
+				# prun
+				if badScore < alpha:
+					cutoffs += 1
+					return {
+						"move":None,
+						"score":alpha,
+						"moveCount":moveCount,
+						"cutoffs":cutoffs
+					}
+		return {
+				"move":None,
+				"score":badScore,
+				"moveCount":moveCount,
+				"cutoffs":cutoffs
+			}
 
 
-	def nextMove(self, grid):
-		self.grid = grid.clone()
-		return self.iterativeDeep()
+	def expect_beta(self,  depth, alpha, beta, moveCount, cutoffs ):
+		badScore = beta
+		grid = self.grid
+		pass
 
-	def iterativeDeep(self):
+	def badone_beta():
+		badScore = beta
+		grid = self.grid
+		pass
+
+
+	def nextMove(self):
+		newGrid = self.grid.clone()
+		newAI = AI(newGrid)
+		return newAI.search(depth, -10000, 10000, 0, 0)
+
+	def searchDeep(self):
 		deep = self.deep
 		depth = 0
 		bestMove = {"score":0}

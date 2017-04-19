@@ -24,6 +24,7 @@ def main():
 		if moved:
 			grid.computerMove()
 			grid.gprint()
+			grid.eval_print()
  
 if __name__ == "__main__":
 	main()
