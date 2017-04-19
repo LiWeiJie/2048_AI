@@ -1,0 +1,8 @@
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+test.py
+__pycache__/*

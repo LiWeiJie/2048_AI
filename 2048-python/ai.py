@@ -1,6 +1,11 @@
 #! /usr/bin/python3
 # -*- coding:utf-8 -*-  
 
+from tile import Tile
+import math
+from counttime import CountTime
+
+DEBUG = False
 
 class AI(object):
 	"""using Minimax search algorithm and Alpha-beta pruning to search a best move for 2048"""
@@ -10,9 +15,10 @@ class AI(object):
 
 	smoothWeight = 0.1
 	maxWeight = 1.0
-	emptyWeight = 2.0
+	monoWeight = 1.0
+	emptyWeight = 2.7
 
-	deep = 3
+	depth = 3
 
 	MAXSCORE = 100000
 
@@ -20,7 +26,8 @@ class AI(object):
 		grid = self.grid
 		return 	grid.smoothness()*self.smoothWeight +\
 				grid.maxValueTime()*self.maxWeight+\
-				len(grid.availableCells())*self.emptyWeight
+				grid.monotonicity()*self.monoWeight+\
+				math.log(len(grid.availableCells()))*self.emptyWeight
 
 	def search(self, depth, alpha, beta, moveCount, cutoffs):
 		bestScore = 0
@@ -29,16 +36,27 @@ class AI(object):
 		grid = self.grid
 		result = {}
 
+		if DEBUG:
+			print("depth:%d"%depth)
+
 		if grid.playerTurn:
-			return self.alpha_phase()			
+			if DEBUG:
+				print("\talpha phase")
+				print("\tmoveCount:%d\tcutoffs:%d"%(moveCount,cutoffs))
+
+
+			return self.alphaPhase(depth, alpha, beta, moveCount, cutoffs)			
 		else:
 			# computer's turn 
-			badScore = beta
+			if DEBUG:
+				print("\tbeta phase")
+				print("\tmoveCount:%d\tcutoffs:%d"%(moveCount,cutoffs))
+			return self.betaPhase(depth, alpha, beta, moveCount, cutoffs)
 
 			
 
 
-	def alpha_phase(self, depth, alpha, beta, moveCount, cutoffs):
+	def alphaPhase(self, depth, alpha, beta, moveCount, cutoffs):
 		bestScore = alpha
 		bestMove = -1
 		grid = self.grid
@@ -48,6 +66,10 @@ class AI(object):
 			newGrid = grid.clone()
 			if newGrid.move(direction):
 				moveCount = moveCount+1
+
+				# if DEBUG:
+				# 	print("\tmove:%d is ok"%direction)
+
 				if newGrid.won:
 					return {
 						"move":direction,
@@ -88,12 +110,12 @@ class AI(object):
 			"cutoffs" : cutoffs
 			}
 
-	def beta_phase(self, depth, alpha, beta, moveCount, cutoffs ):
-		return worse_beta(depth, alpha, beta, moveCount, cutoffs)
-		# return expect_beta(depth, alpha, beta, moveCount, cutoffs)
-		# return badone_beta(depth, alpha, beta, moveCount, cutoffs)
+	def betaPhase(self, depth, alpha, beta, moveCount, cutoffs ):
+		# return self.searchAllBeta(depth, alpha, beta, moveCount, cutoffs)
+		# return self.expectBeta(depth, alpha, beta, moveCount, cutoffs)
+		return self.worstkBeta(depth, alpha, beta, moveCount, cutoffs)
 
-	def worse_beta(self, depth, alpha, beta, moveCount, cutoffs  ):
+	def searchAllBeta(self, depth, alpha, beta, moveCount, cutoffs  ):
 		badScore = beta
 		badMove = None
 		grid = self.grid
@@ -137,31 +159,90 @@ class AI(object):
 			}
 
 
-	def expect_beta(self,  depth, alpha, beta, moveCount, cutoffs ):
+	def expectBeta(self,  depth, alpha, beta, moveCount, cutoffs ):
 		badScore = beta
 		grid = self.grid
 		pass
 
-	def badone_beta():
+	def annoyingEval(self):
+		return -self.grid.smoothness() + self.grid.islands()
+
+	# worst k eval beta search
+	def worstkBeta(self,  depth, alpha, beta, moveCount, cutoffs ):
 		badScore = beta
 		grid = self.grid
-		pass
+		k = 1
+		candidates = []
+		cells = self.grid.availableCells()
+		values = [2, 4]
+		for cell in cells:
+			for value in values:
+				tile = Tile(cell, value)
+				self.grid.setCell(tile)
+				ann = self.annoyingEval()
+				candidates.append({
+						"tile": tile,
+						"annoyingEval":ann
+					})
+				self.grid.removeCell(cell)
 
+		candidates.sort(key = lambda obj:obj.get('annoyingEval'), reverse= True)
+
+		for i in range(k):
+			candidate = candidates[i]
+			tile = candidate["tile"]
+			moveCount += 1
+			self.grid.setCell(tile)
+			self.grid.playerTurn = True
+			result  = self.search(depth, alpha, badScore, moveCount, cutoffs)
+			self.grid.removeCell(tile.getPosition())
+			self.grid.playerTurn = False
+			moveCount = result["moveCount"]
+			cutoffs = result["cutoffs"]
+
+			if result["score"] < badScore:
+				badScore = result["score"]
+
+			# prun
+			if badScore < alpha:
+				cutoffs += 1
+				return {
+					"move":None,
+					"score":alpha,
+					"moveCount":moveCount,
+					"cutoffs":cutoffs
+				}
+		return {
+				"move":None,
+				"score":badScore,
+				"moveCount":moveCount,
+				"cutoffs":cutoffs
+			}
 
 	def nextMove(self):
 		newGrid = self.grid.clone()
 		newAI = AI(newGrid)
-		return newAI.search(depth, -10000, 10000, 0, 0)
+		# return newAI.fixSearch()
+		return newAI.iterativeSearch()
 
-	def searchDeep(self):
-		deep = self.deep
+	def fixSearch(self):
+		return self.search(self.depth, -10000, 10000, 0, 0)
+
+	def iterativeSearch(self):
+		minSearchTime = 500
+		ct = CountTime()
+		ct.start()
 		depth = 0
 		bestMove = {"score":0}
-		while depth<deep:
-			newMove = search(depth, -10000, 10000, 0, 0)
+		ct.stop()
+		print(ct.milliseconds())
+		while ct.milliseconds()<minSearchTime:
+			newMove = self.search(self.depth, -10000, 10000, 0, 0)
 			if newMove["move"]==-1:
 				break
-			if newMove["score"]>bestMove["score"]:
+			else:
 				bestMove = newMove
 			depth+=1
+			ct.stop()
+		print("\tdepth:%d"%depth)
 		return bestMove

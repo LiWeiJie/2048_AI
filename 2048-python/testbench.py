@@ -30,6 +30,8 @@ class Testbench(object):
 
 
 if __name__=="__main__":
-    # grid = Grid()
     tb = Testbench()
     tb.start("grid")
+    tb.start("tile")
+    tb.start("play")
+    tb.start("ai")
